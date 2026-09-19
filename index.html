@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NFT Pro</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+
+    * {
+
+      box-sizing: border-box;
+
+    }
+
+    body {
+
+      margin: 0;
+
+      padding: 20px;
+
+      font-family: Arial, sans-serif;
+
+      background: #0f172a;
+
+      color: white;
+
+    }
+
+    .container {
+
+      max-width: 600px;
+
+      margin: 0 auto;
+
+    }
+
+    h1 {
+
+      margin-bottom: 5px;
+
+    }
+
+    .subtitle {
+
+      color: #94a3b8;
+
+      margin-bottom: 25px;
+
+    }
+
+    .card {
+
+      background: #1e293b;
+
+      border-radius: 18px;
+
+      padding: 20px;
+
+      margin-bottom: 15px;
+
+    }
+
+    button {
+
+      width: 100%;
+
+      border: 0;
+
+      border-radius: 14px;
+
+      padding: 16px;
+
+      margin-top: 10px;
+
+      font-size: 17px;
+
+      font-weight: bold;
+
+      background: #2196f3;
+
+      color: white;
+
+    }
+
+    button:active {
+
+      opacity: 0.8;
+
+    }
+
+    #profile {
+
+      color: #cbd5e1;
+
+      margin-top: 10px;
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>💎 NFT Pro</h1>
+
+    <div class="subtitle">Твой NFT-центр в Telegram</div>
+
+    <div class="card">
+
+      <h2>👤 Профиль</h2>
+
+      <div id="profile">Загрузка профиля...</div>
+
+    </div>
+
+    <div class="card">
+
+      <h2>🖼️ Мои NFT</h2>
+
+      <p>Здесь будут отображаться твои NFT.</p>
+
+      <button onclick="showNFT()">Мои NFT</button>
+
+    </div>
+
+    <div class="card">
+
+      <h2>📚 Коллекции</h2>
+
+      <p>Просматривай NFT-коллекции.</p>
+
+      <button onclick="showCollections()">Коллекции</button>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user;
+
+    if (user) {
+
+      document.getElementById("profile").innerHTML =
+
+        `Имя: ${user.first_name || "Не указано"}<br>
+
+         Username: ${user.username ? "@" + user.username : "не указан"}<br>
+
+         ID: ${user.id}`;
+
+    } else {
+
+      document.getElementById("profile").textContent =
+
+        "Открой приложение через Telegram.";
+
+    }
+
+    function showNFT() {
+
+      tg.showAlert("Раздел «Мои NFT» пока готовится.");
+
+    }
+
+    function showCollections() {
+
+      tg.showAlert("Раздел «Коллекции» пока готовится.");
+
+    }
+
+  </script>
+
+</body>
+
+</html>
