@@ -1,192 +1,378 @@
-<!DOCTYPE html>
 
-<html lang="ru">
+      
+    
+      
+      .stringify(s);
 
-<head>
+}
 
-  <meta charset="UTF-8">
+if (s.day !== new Date().toDateString()) {
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  s.attempts = 3;
 
-  <title>NFT Pro</title>
+  s.day = new Date().toDateString();
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  save();
 
-  <style>
+}
 
-    * {
+const profile = document.getElementById('profile');
 
-      box-sizing: border-box;
+if (u) {
+
+  profile.innerHTML =
+
+    'Имя: <b>' +
+
+    esc(u.first_name || '') +
+
+    '</b>' +
+
+    (u.username
+
+      ? '<br>@' + esc(u.username)
+
+      : '');
+
+} else {
+
+  profile.innerHTML =
+
+    'Открой приложение через Telegram для привязки профиля.';
+
+}
+
+let hits = 0;
+
+let active = false;
+
+function esc(x) {
+
+  return String(x).replace(/[&<>"']/g, function(c) {
+
+    return {
+
+      '&': '&amp;',
+
+      '<': '&lt;',
+
+      '>': '&gt;',
+
+      '"': '&quot;',
+
+      "'": '&#039;'
+
+    }[c];
+
+  });
+
+}
+
+function save() {
+
+  localStorage.setItem(key, JSON.stringify(s));
+
+  render();
+
+}
+
+function render() {
+
+  document.getElementById('tickets').textContent = s.tickets;
+
+  document.getElementById('stars').textContent = s.stars;
+
+  document.getElementById('wins').textContent = s.wins;
+
+  document.getElementById('attempts').textContent = s.attempts;
+
+  const history = document.getElementById('history');
+
+  history.innerHTML = s.history.length
+
+    ? s.history.slice(0, 8).map(function(x) {
+
+        return '<div class="history">' + esc(x) + '</div>';
+
+      }).join('')
+
+    : '<div class="muted">Пока нет выигрышей.</div>';
+
+  const nfts = document.getElementById('nfts');
+
+  nfts.innerHTML = s.nfts.length
+
+    ? s.nfts.map(function(x) {
+
+        return '<div class="history">💎 ' + esc(x) + '</div>';
+
+      }).join('')
+
+    : 'Пока NFT нет.';
+
+}
+
+function msg(x) {
+
+  if (tg?.showAlert) {
+
+    tg.showAlert(x);
+
+  } else {
+
+    alert(x);
+
+  }
+
+}
+
+function show(sec) {
+
+  document.getElementById('gameSec')
+
+    .classList.toggle('hidden', sec !== 'gameSec');
+
+  document.getElementById('caseSec')
+
+    .classList.toggle('hidden', sec !== 'caseSec');
+
+  document.getElementById('tabGame')
+
+    .classList.toggle('active', sec === 'gameSec');
+
+  document.getElementById('tabCases')
+
+    .classList.toggle('active', sec === 'caseSec');
+
+}
+
+function startGame() {
+
+  if (s.attempts <= 0) {
+
+    return msg('Попытки на сегодня закончились.');
+
+  }
+
+  s.attempts--;
+
+  save();
+
+  hits = 0;
+
+  active = true;
+
+  document.getElementById('startBtn').disabled = true;
+
+  document.getElementById('target').style.display = 'block';
+
+  document.getElementById('score').textContent = '0/10';
+
+  document.getElementById('bar').style.width = '0%';
+
+  document.getElementById('status').textContent = 'Лови цель!';
+
+  move();
+
+}
+
+function move() {
+
+  if (!active) return;
+
+  const box = document.getElementById('game');
+
+  const target = document.getElementById('target');
+
+  const maxX = box.clientWidth - 58;
+
+  const maxY = box.clientHeight - 58;
+
+  target.style.left = Math.random() * maxX + 'px';
+
+  target.style.top = Math.random() * maxY + 'px';
+
+}
+
+function hit() {
+
+  if (!active) return;
+
+  hits++;
+
+  document.getElementById('score').textContent =
+
+    hits + '/10';
+
+  document.getElementById('bar').style.width =
+
+    hits * 10 + '%';
+
+  if (hits >= 10) {
+
+    active = false;
+
+    document.getElementById('target').style.display = 'none';
+
+    document.getElementById('startBtn').disabled = false;
+
+    s.tickets++;
+
+    s.wins++;
+
+    save();
+
+    document.getElementById('status').textContent =
+
+      'Победа! +1 билет 🎟️';
+
+    msg('🎉 Победа! Ты получил +1 билет.');
+
+  } else {
+
+    move();
+
+  }
+
+}
+
+const cfg = {
+
+  starter: { cost: 1 },
+
+  nft: { cost: 5 },
+
+  vip: { cost: 15 },
+
+  stars: { cost: 3 }
+
+};
+
+function openCase(type) {
+
+  const cost = cfg[type].cost;
+
+  if (s.tickets < cost) {
+
+    return msg('Недостаточно билетов.');
+
+  }
+
+  s.tickets -= cost;
+
+  const r = Math.random() * 100;
+
+  let prize;
+
+  if (type === 'starter') {
+
+    prize =
+
+      r < 60
+
+        ? '⭐ 10 Stars'
+
+        : r < 90
+
+          ? '🎁 Telegram-подарок'
+
+          : '💎 NFT Starter #' +
+
+            (1 + Math.floor(Math.random() * 99));
+
+  } else if (type === 'nft') {
+
+    prize =
+
+      r < 45
+
+        ? '⭐ 25 Stars'
+
+        : r < 85
+
+          ? '🎁 Telegram-подарок'
+
+          : '💎 Редкий NFT #' +
+
+            (1 + Math.floor(Math.random() * 99));
+
+  } else if (type === 'vip') {
+
+    prize =
+
+      r < 35
+
+        ? '⭐ 100 Stars'
+
+        : r < 80
+
+          ? '🎁 Премиум-подарок'
+
+          : '💎 VIP NFT #' +
+
+            (1 + Math.floor(Math.random() * 99));
+
+  } else {
+
+    prize =
+
+      r < 95
+
+        ? '⭐ ' +
+
+          [10, 25, 50, 100][
+
+            Math.floor(Math.random() * 4)
+
+          ] +
+
+          ' Stars'
+
+        : '💎 Stars NFT #' +
+
+          (1 + Math.floor(Math.random() * 99));
+
+  }
+
+  if (prize.includes('Stars')) {
+
+    const match = prize.match(/\d+/);
+
+    if (match) {
+
+      s.stars += parseInt(match[0]);
 
     }
 
-    body {
+  }
 
-      margin: 0;
+  if (prize.includes('NFT')) {
 
-      padding: 20px;
+    s.nfts.unshift(
 
-      font-family: Arial, sans-serif;
+      prize.replace('💎 ', '')
 
-      background: #0f172a;
+    );
 
-      color: white;
+  }
 
-    }
+  s.history.unshift(
 
-    .container {
+    '🎉 ' + prize
 
-      max-width: 600px;
+  );
 
-      margin: 0 auto;
+  s.wins++;
 
-    }
+  save();
 
-    h1 {
+  msg('🎉 Твой приз: ' + prize);
 
-      margin-bottom: 5px;
+}
 
-    }
+render();
 
-    .subtitle {
-
-      color: #94a3b8;
-
-      margin-bottom: 25px;
-
-    }
-
-    .card {
-
-      background: #1e293b;
-
-      border-radius: 18px;
-
-      padding: 20px;
-
-      margin-bottom: 15px;
-
-    }
-
-    button {
-
-      width: 100%;
-
-      border: 0;
-
-      border-radius: 14px;
-
-      padding: 16px;
-
-      margin-top: 10px;
-
-      font-size: 17px;
-
-      font-weight: bold;
-
-      background: #2196f3;
-
-      color: white;
-
-    }
-
-    button:active {
-
-      opacity: 0.8;
-
-    }
-
-    #profile {
-
-      color: #cbd5e1;
-
-      margin-top: 10px;
-
-    }
-
-  </style>
-
-</head>
-
-<body>
-
-  <div class="container">
-
-    <h1>💎 NFT Pro</h1>
-
-    <div class="subtitle">Твой NFT-центр в Telegram</div>
-
-    <div class="card">
-
-      <h2>👤 Профиль</h2>
-
-      <div id="profile">Загрузка профиля...</div>
-
-    </div>
-
-    <div class="card">
-
-      <h2>🖼️ Мои NFT</h2>
-
-      <p>Здесь будут отображаться твои NFT.</p>
-
-      <button onclick="showNFT()">Мои NFT</button>
-
-    </div>
-
-    <div class="card">
-
-      <h2>📚 Коллекции</h2>
-
-      <p>Просматривай NFT-коллекции.</p>
-
-      <button onclick="showCollections()">Коллекции</button>
-
-    </div>
-
-  </div>
-
-  <script>
-
-    const tg = window.Telegram.WebApp;
-
-    tg.ready();
-
-    tg.expand();
-
-    const user = tg.initDataUnsafe?.user;
-
-    if (user) {
-
-      document.getElementById("profile").innerHTML =
-
-        `Имя: ${user.first_name || "Не указано"}<br>
-
-         Username: ${user.username ? "@" + user.username : "не указан"}<br>
-
-         ID: ${user.id}`;
-
-    } else {
-
-      document.getElementById("profile").textContent =
-
-        "Открой приложение через Telegram.";
-
-    }
-
-    function showNFT() {
-
-      tg.showAlert("Раздел «Мои NFT» пока готовится.");
-
-    }
-
-    function showCollections() {
-
-      tg.showAlert("Раздел «Коллекции» пока готовится.");
-
-    }
-
-  </script>
+</script>
 
 </body>
 
